@@ -1,0 +1,91 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Method Omnidocs\\Markdown\\Changelog\:\:firstOf\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: Changelog.php
+
+		-
+			message: '#^Cannot call method insertBefore\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: MarkdownRenderer.php
+
+		-
+			message: '#^Empty array passed to foreach\.$#'
+			identifier: foreach.emptyArray
+			count: 1
+			path: MarkdownRenderer.php
+
+		-
+			message: '#^Parameter \#1 \$array \(list\<string\>\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: MarkdownRenderer.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between '''' and non\-empty\-string will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 2
+			path: MarkdownRenderer.php
+
+		-
+			message: '#^Parameter \#1 \$name of static method Omnidocs\\Support\\Path\:\:slug\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: MarkdownSource.php
+
+		-
+			message: '#^Parameter \#1 \$path of static method Omnidocs\\Support\\Path\:\:normalise\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: MarkdownSource.php
+
+		-
+			message: '#^Parameter \#2 \$fragment of method Omnidocs\\LinkerInterface\:\:file\(\) expects string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: MarkdownSource.php
+
+		-
+			message: '#^Parameter \#2 \$fragment of method Omnidocs\\LinkerInterface\:\:page\(\) expects string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: MarkdownSource.php
+
+		-
+			message: '#^Parameter \#2 \$relative of static method Omnidocs\\Support\\Path\:\:resolve\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: MarkdownSource.php
+
+		-
+			message: '#^Parameter \#4 \$order of class Omnidocs\\Model\\Node constructor expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: MarkdownSource.php
+
+		-
+			message: '#^Parameter \#4 \$order of static method Omnidocs\\Model\\Node\:\:section\(\) expects int, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: MarkdownSource.php
+
+		-
+			message: '#^Parameter \#1 \$node of method League\\CommonMark\\Extension\\CommonMark\\Renderer\\Block\\BlockQuoteRenderer\:\:render\(\) expects League\\CommonMark\\Extension\\CommonMark\\Node\\Block\\BlockQuote, League\\CommonMark\\Node\\Node given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Renderer/CalloutRenderer.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type Omnidocs\\Model\\Page\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 3
+			path: Tests/MarkdownSourceTest.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type Omnidocs\\Model\\Node\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Tests/MarkdownSourceTest.php

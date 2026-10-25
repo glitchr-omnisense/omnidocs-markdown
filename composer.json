@@ -1,0 +1,51 @@
+{
+    "name": "omnidocs/markdown",
+    "type": "library",
+    "description": "Omnidocs Markdown: a folder of Markdown files as an omnidocs manual - its contents from the folders and the files (their front matter, a number before their name), each page rendered with league/commonmark as symfony.com/doc writes its pages: callouts (note, tip, caution, versionadded...), code with a caption and in tabs, version badges, links between pages and to the repository; and a changelog read as releases.",
+    "keywords": [
+        "documentation",
+        "markdown",
+        "commonmark",
+        "manual",
+        "changelog",
+        "omnidocs"
+    ],
+    "homepage": "https://github.com/glitchr-studio/omnidocs-markdown",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Marco Meyer",
+            "email": "marco.meyer@glitchr.io"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "league/commonmark": "^2.6",
+        "omniscient/omnidocs": "^1.0@dev",
+        "symfony/yaml": "^6.4|^7.0|^8.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Omnidocs\\Markdown\\": ""
+        },
+        "exclude-from-classmap": [
+            "/Tests/"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Omnidocs\\Markdown\\Tests\\": "Tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-1.x": "1.x-dev"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

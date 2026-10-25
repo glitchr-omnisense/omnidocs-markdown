@@ -1,0 +1,309 @@
+# Sticky and stops
+
+`src/js/sticky.js` (global `Sticky`) and `src/js/stops.js` (global `StickyStops`). The options of Sticky are listed in the README and in `Sticky.settings`; this page describes the address following the reading and the scroll stops.
+
+## The address follows the reading
+
+With `replacehash` on (the default), the page's address carries the `#id` of
+the headline being read: `.sticky-headlines[id]`, any `[id]` inside a
+`.sticky-headlines`, or a `.sticky-magnet[id]` (`.sticky-headlines-skip` left
+out). A headline is being read once it has reached where its own link would
+land it - the scroller's `scroll-padding-top` plus the headline's
+`scroll-margin-top` - and until it has scrolled out of sight. At the top, with
+none reached, the address has no hash. The change is a `history.replaceState`:
+it adds nothing to the history.
+
+```html
+<section id="menus" class="sticky-headlines" style="scroll-margin-top: 4rem">…</section>
+```
+
+## The header that hides, the magnets
+
+A `.sticky-top` element hides as the page scrolls down past it and shows again
+on the way up (the classes `show` and `skip-transition`, an inline `top`),
+unless `scrollhide` is `false` or the element carries
+`aria-scrollhide="false"`. Up to 1.0.2 (and since stickyjs' 2022 versions) the
+library itself wrote that attribute on every scroll, and no header ever hid: a
+site that had come to count on its header staying sets `scrollhide: false` in
+`Sticky.ready()`, or the attribute in its template.
+
+`Sticky.getMagnets(el)` gives the `.sticky-magnet` elements of `el`, top to
+bottom, as `{element, offsetTop, offsetLeft, visible}` (`visible`: the share
+of its scroller's box the magnet fills, 0 to 1); `.sticky-magnet-first`,
+`-prev`, `-next` and `-last` scroll to them (`Sticky.scrollToNextSnap()`...).
+
+With `scrollsnap` (and `passive: false`), a scroll of the reader's that leaves
+a magnet takes the page to the next one in its direction. On the way `<html>`
+carries `.sticky-prevent-scroll` (`overflow: hidden`) and the movement holds
+the scroll: a wheel on the way neither stops it nor adds to it, so a quick
+gesture leads one magnet further, not two. The class is taken off `debounce`
+after the movement ended, however it ended.
+
+### A way the reader may take: `scrollsnap_hold` (1.1)
+
+`scrollsnap_hold` (`true`) is that held way. Set to `false`, the way to a
+magnet is the reader's to take: nothing is set on `<html>`, and a wheel, a
+finger, a press or a key on the way stops the page where it is and gives the
+scroll back at once. The snap does not start again against that gesture: it
+waits until the scroll has been quiet for `debounce`, then acts as it always
+does, at the reader's next scroll. The option is the library's, read each time
+a way begins: `Sticky.ready({...})` or `Sticky.set("scrollsnap_hold", false)`.
+
+```js
+Sticky.ready({ scrollsnap: true, passive: false, scrollsnap_hold: false });
+```
+
+### The arrow keys: `scrollsnap_keys` (1.1)
+
+`scrollsnap_keys` (`false`): the arrows go from magnet to magnet, with the
+snap's movement (`smoothscroll_duration`, `smoothscroll_easing`) and the way
+`scrollsnap_hold` says. <kbd>↓</kbd> / <kbd>↑</kbd> where the magnets follow
+each other down a scroller - the page, most often -, <kbd>→</kbd> /
+<kbd>←</kbd> where they follow each other across one (a row with
+`overflow-x: auto` holding `.sticky-magnet` children). The scroller is the one
+the key is pressed in (the focus inside it, or the pointer over it), the page
+otherwise; a magnet is met under the scroller's `scroll-padding`, and a
+scroller's magnets are its own: the page's keys never count a row's.
+
+```html
+<section class="sticky-magnet">…</section>
+<section class="sticky-magnet">
+    <div class="row" tabindex="0" style="display: flex; overflow-x: auto">
+        <article class="sticky-magnet">…</article>
+        <article class="sticky-magnet">…</article>
+    </div>
+</section>
+<script>Sticky.ready({ scrollsnap: true, scrollsnap_keys: true });</script>
+```
+
+Down goes on to the next magnet, up back to the one being read, then to the
+one before. Two presses in a row lead two magnets further (the second goes on
+from where the first was going); a key held down goes one magnet at a time,
+each way finished first. The key is left alone - to the browser, or to the
+page - past the last magnet and before the first, along an axis where no
+magnets follow each other, in a field (`input`, `textarea`, `select`,
+`contenteditable`), on a widget with keys of its own (a slider, tabs, a menu,
+audio, video), in an open `<dialog>`, with Shift, Alt, Ctrl or Meta held,
+inside an element that scrolls by itself along that axis, and when a handler
+of the page took it (`preventDefault`): the library listens on the window, in
+the bubble phase. The keys do not need `passive: false`: they work with or
+without the snap under the wheel. `Sticky.getMagnetPositions(scroller, axis)`
+gives the scroll positions the keys go through (`"y"` by default).
+
+The buttons (`.sticky-magnet-prev`, `-next`...) are as they were. For
+`.sticky-stop` sections, the same keys are the stops' `keys` option, below.
+
+`Sticky.scrollTo(dict, callback, el)` and `Flow.scrollTo(el, dict, callback)`
+call back once, whatever becomes of the movement, with
+`{completed, reason, top, left}`: `"arrived"` (also when there was no way to
+go), `"interrupted"` (the reader took over: a wheel, a finger, a press),
+`"replaced"` (another scroll of the same scroller began) or, from
+`Sticky.scrollTo` only, `"refused"` (a script had the scroll already). What a
+caller sets for the time of a movement, it lifts in the callback; what it does
+on arrival only, it does when `completed`. `{hold: true}` in `dict` makes a
+movement the reader's gesture does not stop.
+
+The effects run once per frame in which the scroller scrolled, through the
+core, and once when the page is loaded. `Sticky.trigger(el)` runs them now,
+as `$(window).trigger('scrolldelta.sticky')` did in stickyjs; a page's own
+`scrolldelta` handlers (jQuery) still receive the computed event.
+
+## Scroll stops
+
+`src/js/stops.js` - places on the page a scroll settles on, once it has come
+to rest. Standalone: no jQuery, and `import '@glitchr/flowjs/stops'`
+brings in nothing else.
+
+```html
+<header class="sticky-stop" data-sticky-band-down="0">…</header>
+<div id="site" class="sticky-stop" data-sticky-band-up="90" data-sticky-band-down="280"></div>
+```
+
+A stop rests where the browser would put an anchor: below the scroller's
+`scroll-padding-top` (`-left` for a row) plus the stop's own `scroll-margin-top`
+(`-left`), the two added. A section with `scroll-margin-top: 4rem` under a
+header of that height rests under it, as a link to its id does.
+
+Each stop has a band above and below it, in px (`rem` and `em` work too).
+Once a scroll comes to rest - trackpad momentum included:
+
+- between two stops it glides on to the one it was heading for, unless it
+  rests inside the band of the stop it just left: that was a nudge, and it
+  settles back. So a band is the least a scroll must travel before the next
+  stop takes;
+- past the last stop (and before the first) it scrolls freely, except inside
+  that stop's band: a scroll back towards the stop, or an overshoot past it,
+  returns to it.
+
+A stop taller than the screen is read freely, from its top until its bottom
+meets the bottom of the screen; its band below counts from there, and coming
+back up from the next stop settles on its last screen, not its top.
+Unless it is barely taller than the screen: a stop at most a quarter of a
+screen taller (`shortEnd`, 1.5.2) rests at its top only. Its few extra pixels
+are read freely all the same, but it is otherwise a stop the screen holds:
+its band below counts from its top (1.5.3), so a scroll heading down that
+comes to rest past its end within that band glides back to its top, and one
+further down goes on to the next stop (within the `reach`); one heading up
+goes to its top (with `up: false`, it rests where it is), and no key stops at
+its end.
+
+A band never reaches past halfway to the neighbouring stop. The glide is the
+browser's smooth scroll, which any wheel, touch, key or click interrupts, and
+a jump under `prefers-reduced-motion`.
+
+Gentler stops, for a page that should be discovered rather than led:
+
+- `reach` (px, or `"10rem"`, `"20vh"`; `Infinity` by default): the farthest a
+  glide may go. When the stop a rest would glide to is farther than that, the
+  page stays where it is - only a rest near a stop is completed, and what lies
+  between two stops can be looked at. A band wider than the reach is pointless;
+- `duration` (ms; `0` by default, the browser's smooth scroll): the glide is
+  animated by the library over that time, on an ease-in-out curve (less for a
+  glide under 100px, in proportion, down to 40%). Any wheel, touch, key or
+  click stops it where it is, and it is not taken up again unless the reader
+  scrolls on;
+- `end` (`false` by default): the end of the scroll is a stop too - from the
+  last section a glide goes down to the very bottom (a footer), and one back
+  up, however far: `reach` does not bind it.
+- `ends` (`false` by default, with `keys`; 1.4): an arrow shows a tall stop's
+  two ends - down, from its top (or from inside it) to its end, its last
+  screen, then on to the next stop's top; up, from its end back to its top,
+  and from the top of the stop below to the end of a tall one before its top.
+  Without it an arrow goes from top to top, however tall the stop.
+- `screens` (`false` by default, with `keys`; 1.5): arrows and page keys read
+  a tall stop a whole screen at a time - its top, a screen further, and so on
+  to its end (its last screen), exactly - then go on to the next stop's top;
+  up, the same back to its top, then to the end of the stop above. Down, from
+  less than a quarter of a screen before that end a key goes on to the next
+  stop rather than to the end; up, a step that would rest less than that under
+  the stop's top goes to the top: a key never makes a short step to rest just
+  before a section. A stop barely
+  taller than the screen has its top alone. It takes the place of `ends` and
+  of the page keys' own step (seven eighths of a screen) where it is set.
+- `shortEnd` (a share of the screen, `0.25` by default, a line at the least;
+  1.5.2): a stop at most that much taller than the screen has one rest, its
+  top - for a scroll at rest, for the arrows with `ends`, for the page keys
+  and for `screens` (whose "less than a quarter of a screen" it also sets).
+  `data-sticky-short-end` on a stop gives it a share of its own (`0` keeps
+  its end as a rest down to a line taller than the screen).
+- `easing` (with a `duration`): the curve of the glide - a cubic Bezier as CSS
+  writes it, `'cubic-bezier(.65, 0, .35, 1)'` by default (gathering speed,
+  then slowing into the stop), its four numbers in an array, one of CSS's
+  names (`linear`, `ease`, `ease-in`, `ease-out`, `ease-in-out`), or a
+  function of the time gone (0 to 1) giving the way made. Every glide follows
+  it: the one finishing a scroll at rest, and the one a key asks for, down the
+  page or along a row (`data-sticky-easing` on a row).
+- `settle` (ms, `160` by default): how long the scroll must have been quiet
+  before anything happens.
+- `up` and `down` (`true` by default): each way on its own. With `up: false`
+  a scroll heading up rests where the reader left it - neither carried on to
+  the stop above nor settled back to the one below - while a scroll heading
+  down still goes on to its stop: the page leads the way down and lets the
+  reader wander back up. `down: false` is the other way round. The reader's
+  direction is what counts (a nudge down that settles back up belongs to the
+  downward scroll), and the keys are not concerned - a key is asked for. A
+  stop says it for itself with `data-sticky-up` and `data-sticky-down`
+  (`"false"`, or `"true"` against the option): a reader heading up is not
+  taken to a stop marked `data-sticky-up="false"`, and one marked
+  `data-sticky-up="true"` - a full sky at the top of the page - keeps its pull
+  upwards where going back up is otherwise free. On a sideways row up is
+  towards its start, and the row takes the same two attributes.
+
+```js
+StickyStops.attach(window, { reach: 140, settle: 320, duration: 700, bandUp: 140, bandDown: 140 });
+```
+
+### Keys (1.5)
+
+`keys: true` lets the keyboard go from stop to stop, with the same glide:
+<kbd>↓</kbd>, <kbd>PageDown</kbd> and <kbd>Space</kbd> to the next stop,
+<kbd>↑</kbd>, <kbd>PageUp</kbd> and <kbd>Shift</kbd>+<kbd>Space</kbd> to the
+previous one (a tall one: its last screen), <kbd>Home</kbd> / <kbd>End</kbd> to
+the first / last stop.
+
+- An arrow always goes to a stop: down to the next one, up to the top of the
+  one being read and then to the one before - however tall the stop. A tall
+  stop is read with the wheel, the finger or the page keys: a page key moves
+  one screen inside it, never past its end or top, before going on.
+- A key pressed during a key's glide goes on from where that glide was going:
+  presses chain stop after stop. A key held down goes one stop at a time.
+- A neighbour farther than a screen and a half away (past the last stop,
+  before the first, a long way between two) is left to the browser's own
+  scroll - a separator shorter than half a screen is glided over, which then rests where the key put it.
+  `reach` does not apply to keys. Shift goes with Space only.
+- Left alone: focus in a field, a frame, an open `<dialog>`, a widget with keys
+  of its own (slider, tabs, menu, listbox, audio, video) or an element that
+  scrolls by itself; Alt, Ctrl or Meta held; Space on a button or a link; and
+  any key a handler of the page already took (`event.defaultPrevented`) - the
+  library listens on the window in the bubble phase, after the document's
+  handlers, so a music player's Space stays the player's.
+
+```js
+StickyStops.attach(window, { reach: 140, settle: 320, duration: 800, easing: 'cubic-bezier(.7, 0, .2, 1)', bandUp: 140, bandDown: 140, keys: true, end: true });
+```
+
+### Sideways (1.5)
+
+`axis: 'x'` on an element scroller meets the stops by their left edge (its
+`scroll-padding-left`) and glides its `scrollLeft`: the same rest, reach, bands
+and wide-stop reading, along x - a horizontal wheel, trackpad or swipe settles
+on the stop it was heading for. With `keys`, <kbd>←</kbd> / <kbd>→</kbd> go
+from stop to stop while focus is inside the row or the pointer is over it.
+
+A row marked `data-sticky-axis="x"` with `.sticky-stop` children is attached
+by itself on load, keys on (`data-sticky-keys="false"` to keep them off), with
+optional `data-sticky-duration`, `-settle`, `-reach` and `-tolerance`. Its
+stops are its own: the page's stops never count them. Leave CSS scroll-snap off
+the row - it pulls to the nearest item meanwhile.
+
+```html
+<div class="photos" data-sticky-axis="x" data-sticky-duration="500" style="overflow-x: auto; display: flex">
+    <figure class="sticky-stop">…</figure>
+    <figure class="sticky-stop">…</figure>
+</div>
+```
+
+```js
+StickyStops.attach(row, { axis: 'x', keys: true });
+StickyStops.scan();  // attach the data-sticky-axis rows swapped in since
+```
+
+With two stops or more the scroller (`<html>` for the page) carries
+`--sticky-stop` (the index of the stop above), `--sticky-progress` (0 at that
+stop, 1 at the next) and `--sticky-progress-held` (the same, held still across
+the bands), and dispatches `sticky:progress` with `{index, from, to, top,
+progress, held}` in `event.detail` when they change, and `sticky:stop` with
+`{stop, top, axis, key}` at each glide. Both bubble to the window.
+
+The window attaches itself when the document has stops at `DOMContentLoaded`
+or `load`. Otherwise, and for scrolling elements:
+
+```js
+StickyStops.attach(scroller, { settle: 160, tolerance: 3, reach: Infinity, duration: 0, easing: 'cubic-bezier(.65, 0, .35, 1)', bandUp: 0, bandDown: 0, up: true, down: true, progress: true, smooth: true, axis: 'y', keys: false });
+StickyStops.get(scroller).state;      // the last progress, or null
+StickyStops.get(scroller).refresh();  // after content moved
+StickyStops.pause(); StickyStops.resume();  // while a script scrolls the page itself; nests
+```
+
+The window's stops are measured once and kept while the page keeps its shape
+(its size, its nodes); a resize, `refresh()`, a rest and a key measure again,
+and at each frame of a scroll the two stops the scroll is between are checked.
+`stops.measure()` always measures; `stops.measure(true)` may give the kept
+measure back.
+
+Two stops at the same place (within `tolerance`) are one stop - the first in
+the document. A script that makes stops of its own (markers along a track)
+should clear the ones it finds before making them: a page the navigation gives
+back from its cache comes as it was left, the script's markers included, and
+the script runs again on it. `transparent:beforeunload` is dispatched before a
+page is kept, for a script that would rather take its nodes away then.
+
+A scroll a script makes through the library (the navigation giving a position
+back or going to an anchor, `Sticky.scrollTo`, `Flow.scrollTo`, `Flow.jump`)
+rests where it was put: the stops only complete the reader's own scrolls.
+
+`Sticky.stops` is the same object when `sticky.js` is loaded.
+
+## License
+
+MIT since 2026-10-10; earlier versions remain published under LGPL-3.0-or-later.
