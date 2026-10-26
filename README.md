@@ -1,6 +1,6 @@
 # omnidocs/markdown
 
-A folder of Markdown files as an [omnidocs](https://github.com/glitchr-studio/omnidocs) manual, each
+A folder of Markdown files as an [omnidocs](https://github.com/glitchr-omnisense/omnidocs) manual, each
 page rendered with league/commonmark as symfony.com/doc writes its pages - in a syntax GitHub reads too:
 
 ```md
@@ -59,7 +59,7 @@ anchor). Options: [docs/index.md](docs/index.md).
   CHANGELOG (copied at the commit in Tests/Fixtures/flowjs/COMMIT) and on a folder written for the
   test (sections, numbers, front matter, every kind of link); the renderer's callouts, frames, tabs,
   badges, allowed tags; `BareTest`.
-- Verified in use: the Omniscient site renders its guides, news and 153 package manuals with it - its
+- Verified in use: the Omnisense site renders its guides, news and 153 package manuals with it - its
   static export the same as with its former renderer, byte for byte but the build's own version; the
   flowjs site its manual and changelog.
 - Not verified: Markdown written for other generators' extensions (MkDocs admonitions `!!! note`,
