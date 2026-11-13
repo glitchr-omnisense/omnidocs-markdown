@@ -36,6 +36,34 @@ $flow = ['keys' => true];
   manual knows (`versions`, e.g. `Changelog::read('CHANGELOG.md')->knownVersions()`) shows a badge;
 - raw HTML is escaped - but for the tags `inline_html` allows, written bare (`<kbd>`).
 
+## Installation and a first use
+
+```sh
+composer require omnidocs/markdown
+```
+
+It needs PHP 8.2 and no outside tool (league/commonmark and symfony/yaml come with it); no network,
+no account. A first manual, of this package's own README and CHANGELOG, installed with it:
+
+```php
+require __DIR__.'/vendor/autoload.php';
+
+use Omnidocs\Model\Version;
+use Omnidocs\Markdown\MarkdownSourceFactory;
+
+$source = (new MarkdownSourceFactory())->create(['root' => __DIR__.'/vendor/omnidocs/markdown', 'home' => 'README.md', 'pages' => ['changelog' => 'CHANGELOG.md']]);
+$version = new Version('1.x', $source);
+foreach ($version->pages() as $node) {
+    echo $node->title, "\n";
+}
+```
+
+Its tests (`composer install` then `vendor/bin/phpunit` in a checkout, or every package at once in
+[omnidocs' Docker harness](https://github.com/glitchr-omnisense/omnidocs/blob/1.x/docs/harness.md))
+read the folders committed under Tests/Fixtures; nothing else is needed.
+
+A manual's options in full:
+
 ```php
 use Omnidocs\Markdown\{Changelog, MarkdownSourceFactory};
 
